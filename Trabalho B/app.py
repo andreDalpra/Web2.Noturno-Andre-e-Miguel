@@ -1,7 +1,11 @@
 """
 Classe principal do SOAP, responsavel por montar os servicos.
 """
+import os
+import sys
 from datetime import datetime
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from flask import Flask
 from spyne import Application, Integer, ServiceBase, Unicode, rpc
@@ -9,7 +13,7 @@ from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
-import database.conexao as cx
+import comum.conexao as cx
 from models.cadcli import Tcadcli
 from models.cadped import Tcadped
 from models.cadpro import Tcadpro
