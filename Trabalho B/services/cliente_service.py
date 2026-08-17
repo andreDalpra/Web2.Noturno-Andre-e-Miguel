@@ -1,6 +1,5 @@
 from models.cadcli import Tcadcli
 
-
 class ClienteService:
     def __init__(self, conn):
         self.conn = conn

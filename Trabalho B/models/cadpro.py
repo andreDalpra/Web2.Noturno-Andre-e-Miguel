@@ -1,4 +1,5 @@
 # Classe de produto.
+from decimal import Decimal, InvalidOperation
 
 class Tcadpro:
     # Variaveis que representam os campos da tabela
@@ -28,6 +29,48 @@ class Tcadpro:
 
         return False
 
+    def valida(self):
+        if not self.codpro:
+            return "Codigo do produto nao pode ser vazio."
+        if not self.despro:
+            return "Descricao do produto nao pode ser vazia."
+        if not self.vlrpro:
+            return "Valor do produto nao pode ser vazio."
+
+        return ""
+
+     # Insere os dados na tabela
+    def insere(self):
+        with self.conn.cursor() as cur:
+            cur.execute(
+                f"""
+                    INSERT INTO cadpro (codpro, despro, vlrpro)
+                    VALUES (%s, %s, %s)
+                """,
+                (self.codpro, self.despro, self.vlrpro),
+            )
+
+        self.conn.commit()
+        return f"Produto cadastrado com codigo {self.codpro}."
+
+    # Exclui os dados da tabela
+    def remove(self):
+        with self.conn.cursor() as cur:
+            cur.execute(
+                """
+                    DELETE FROM cadpro
+                    WHERE codpro = %s
+                """,
+                (self.codpro,),
+            )
+            removeu = cur.rowcount > 0
+
+        self.conn.commit()
+        if removeu:
+            return "Produto removido com sucesso."
+
+        return f"Produto com codigo {self.codpro} nao encontrado."
+        
     # Carrega os dados do dataset para os atributos da classe
     def carrega_do_dataset(self, row):
         self.codpro = row["codpro"]

@@ -12,12 +12,15 @@ from werkzeug.middleware.dispatcher import DispatcherMiddleware
 import database.conexao as cx
 from models.cadcli import Tcadcli
 from models.cadped import Tcadped
+from models.cadpro import Tcadpro
 from services.pedido_service import PedidoService
 from services.cliente_service import ClienteService
+from services.produto_service import ProdutoService
 
 # Conexao global do banco de dados utilizada pelo SOAP
 conn = cx.obter_conexao()
 
+# ClienteSoapService é a classe que define os métodos SOAP relacionados aos clientes.
 class ClienteSoapService(ServiceBase):
     @rpc(Unicode, Unicode, Unicode, _returns=Unicode)
     def cadastrar_cliente(ctx, nomcli, endcli, telcli):
@@ -61,6 +64,51 @@ class ClienteSoapService(ServiceBase):
         except Exception as erro:
             return str(erro)
 
+# ProdutoSoapService é a classe que define os métodos SOAP relacionados aos produtos.
+class ProdutoSoapService(ServiceBase):
+    @rpc(Integer, Unicode, Unicode, _returns=Unicode)
+    def cadastrar_produto(ctx, codpro, despro, vlrpro):
+        try:
+            service = ProdutoService(conn)
+            produto = Tcadpro(conn)
+            produto.codpro = codpro
+            produto.despro = despro
+            produto.vlrpro = vlrpro
+
+            return service.cadastra_produto(produto)
+
+        except Exception as erro:
+            return str(erro)
+
+    @rpc(Integer, _returns=Unicode)
+    def buscar_produto(ctx, codpro):
+        try:
+            service = ProdutoService(conn)
+            produto = service.busca_produto(codpro)
+
+            if not produto:
+                return f"Produto com codigo {codpro} nao encontrado."
+
+            return (
+                f"Codigo: {produto.codpro} | "
+                f"Descricao: {produto.despro} | "
+                f"Valor: {produto.vlrpro}"
+            )
+
+        except Exception as erro:
+            return str(erro)
+
+    @rpc(Integer, _returns=Unicode)
+    def remover_produto(ctx, codpro):
+        try:
+            service = ProdutoService(conn)
+            return service.remove_produto(codpro)
+
+        except Exception as erro:
+            return str(erro)
+
+
+# PedidoSoapService é a classe que define os métodos SOAP relacionados aos pedidos.
 class PedidoSoapService(ServiceBase):
     @rpc(Integer, _returns=Unicode)
     def cadastrar_pedido(ctx, codcli):
@@ -100,7 +148,7 @@ class PedidoSoapService(ServiceBase):
             return str(erro)
 
 soap_app = Application(
-    [ClienteSoapService, PedidoSoapService],
+    [ClienteSoapService, PedidoSoapService, ProdutoSoapService],
     tns="pudim_lanches.soap",
     in_protocol=Soap11(validator="lxml"),
     out_protocol=Soap11(),
