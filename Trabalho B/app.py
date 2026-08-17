@@ -1,0 +1,120 @@
+"""
+Classe principal do SOAP, responsavel por montar os servicos.
+"""
+from datetime import datetime
+
+from flask import Flask
+from spyne import Application, Integer, ServiceBase, Unicode, rpc
+from spyne.protocol.soap import Soap11
+from spyne.server.wsgi import WsgiApplication
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+
+import database.conexao as cx
+from models.cadcli import Tcadcli
+from models.cadped import Tcadped
+from services.pedido_service import PedidoService
+from services.cliente_service import ClienteService
+
+# Conexao global do banco de dados utilizada pelo SOAP
+conn = cx.obter_conexao()
+
+class ClienteSoapService(ServiceBase):
+    @rpc(Unicode, Unicode, Unicode, _returns=Unicode)
+    def cadastrar_cliente(ctx, nomcli, endcli, telcli):
+        try:
+            service = ClienteService(conn)
+            cliente = Tcadcli(conn)
+            cliente.nomcli = nomcli
+            cliente.endcli = endcli
+            cliente.telcli = telcli
+
+            return service.cadastra_cliente(cliente)
+
+        except Exception as erro:
+            return str(erro)
+
+    @rpc(Integer, _returns=Unicode)
+    def buscar_cliente(ctx, codcli):
+        try:
+            service = ClienteService(conn)
+            cliente = service.busca_cliente(codcli)
+
+            if not cliente:
+                return f"Cliente com codigo {codcli} nao encontrado."
+
+            return (
+                f"Codigo: {cliente.codcli} | "
+                f"Nome: {cliente.nomcli} | "
+                f"Endereco: {cliente.endcli} | "
+                f"Telefone: {cliente.telcli}"
+            )
+
+        except Exception as erro:
+            return str(erro)
+
+    @rpc(Integer, _returns=Unicode)
+    def remover_cliente(ctx, codcli):
+        try:
+            service = ClienteService(conn)
+            return service.remove_cliente(codcli)
+
+        except Exception as erro:
+            return str(erro)
+
+class PedidoSoapService(ServiceBase):
+    @rpc(Integer, _returns=Unicode)
+    def cadastrar_pedido(ctx, codcli):
+        try:
+            service = PedidoService(conn)
+            pedido = Tcadped(conn)
+            pedido.codcli = codcli
+            pedido.datped = datetime.now().strftime("%Y-%m-%d")  # Data do pedido como data atual
+            pedido.staped = "A"  # Status do pedido como "Aberto" como padrao
+            pedido.obsped = None
+            pedido.vlrped = 0.0  # Valor do pedido como 0.0 como padrao
+
+            return service.cadastra_pedido(pedido)
+
+        except Exception as erro:
+            return str(erro)
+
+    @rpc(Integer, _returns=Unicode)
+    def buscar_pedido(ctx, codped):
+        try:
+            service = PedidoService(conn)
+            pedido = service.busca_pedido(codped)
+
+            if not pedido:
+                return f"Pedido com codigo {codped} nao encontrado."
+
+            return (
+                f"Codigo: {pedido.codped} | "
+                f"Codigo do Cliente: {pedido.codcli} | "
+                f"Data: {pedido.datped} | "
+                f"Status: {pedido.staped} | "
+                f"Observacao: {pedido.obsped} | "
+                f"Valor: {pedido.vlrped}"
+            )
+
+        except Exception as erro:
+            return str(erro)
+
+soap_app = Application(
+    [ClienteSoapService, PedidoSoapService],
+    tns="pudim_lanches.soap",
+    in_protocol=Soap11(validator="lxml"),
+    out_protocol=Soap11(),
+)
+
+flask_app = Flask(__name__)
+flask_app.wsgi_app = DispatcherMiddleware(
+    flask_app.wsgi_app,
+    {
+        "/soap": WsgiApplication(soap_app),
+    },
+)
+
+
+@flask_app.route("/")
+def index():
+    return "API SOAP PUDIM_LANCHES rodando. Acesse /soap?wsdl"
