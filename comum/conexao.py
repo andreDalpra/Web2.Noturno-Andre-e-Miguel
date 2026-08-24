@@ -2,11 +2,12 @@
     Unit que conecta no banco de dados MySQL
 """
 import os
+from pathlib import Path
 
 import pymysql
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(dotenv_path=Path.cwd() / ".env", override=True)
 
 def obter_conexao():
     return pymysql.connect(

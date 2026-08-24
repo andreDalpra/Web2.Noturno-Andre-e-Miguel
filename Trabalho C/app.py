@@ -151,6 +151,15 @@ class PedidoSoapService(ServiceBase):
         except Exception as erro:
             return str(erro)
 
+    @rpc(Integer, _returns=Unicode)
+    def remover_pedido(ctx, codped):
+        try:
+            service = PedidoService(conn)
+            return service.remove_pedido(codped)
+
+        except Exception as erro:
+            return str(erro)
+
 soap_app = Application(
     [ClienteSoapService, PedidoSoapService, ProdutoSoapService],
     tns="pudim_lanches.soap",
