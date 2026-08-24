@@ -27,10 +27,11 @@ CREATE TABLE CADPED(
 
 CREATE TABLE ITEPED(
     seqiteped INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    codped INT NOT NULL,
     numite INT NOT NULL,
     codpro INT NOT NULL,
     qtdite INT NOT NULL,
-    codped INT NOT NULL,
+    vlrite DECIMAL(10,2) NOT NULL,
     FOREIGN KEY (codpro) REFERENCES CADPRO(codpro),
     FOREIGN KEY (codped) REFERENCES CADPED(codped),
     UNIQUE INDEX uk_iteped (numite, codpro)
