@@ -66,9 +66,9 @@ class Tcadcli:
 
         self.conn.commit()
         if removeu:
-            return "Item do pedido removido com sucesso."
+            return "Cliente removido com sucesso."
 
-        return f"Item do pedido nao encontrado nao encontrado."
+        return f"Cliente {self.codcli} nao encontrado."
 
     # Carrega os dados do dataset para os atributos da classe
     def carrega_do_dataset(self, row):
