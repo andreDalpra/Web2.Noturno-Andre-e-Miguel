@@ -75,6 +75,9 @@ class Titeped:
         if  not self.valida_produto():
             return f"Produto com codigo {self.codpro} nao encontrado."
 
+        if  self.le_uk1(self.codped, self.numite):
+            return f"Item {self.numite} do pedido {self.codped} ja cadastrado."
+        
         # Copia o valor do produto para o item do pedido
         self.vlrite = self.cadpro.vlrpro
 
