@@ -17,6 +17,7 @@ import comum.conexao as cx
 from models.cadcli import Tcadcli
 from models.cadped import Tcadped
 from models.cadpro import Tcadpro
+from models.iteped import Titeped
 from services.pedido_service import PedidoService
 from services.cliente_service import ClienteService
 from services.produto_service import ProdutoService
@@ -160,6 +161,86 @@ class PedidoSoapService(ServiceBase):
         except Exception as erro:
             return str(erro)
 
+    @rpc(Integer, Integer, Integer, Integer, _returns=Unicode)
+    def cadastrar_item_pedido(ctx, codped, numite, codpro, qtdite):
+        try:
+            service = PedidoService(conn)
+            item = Titeped(conn)
+            item.codped = codped
+            item.numite = numite
+            item.codpro = codpro
+            item.qtdite = qtdite
+
+            return service.cria_item_pedido(item)
+
+        except Exception as erro:
+            return str(erro)
+
+    @rpc(Integer, Integer, _returns=Unicode)
+    def buscar_item_pedido(ctx, codped, numite):
+        try:
+            service = PedidoService(conn)
+            item = service.busca_item_pedido(codped, numite)
+
+            if not item:
+                return f"Item {numite} do pedido {codped} nao encontrado."
+
+            return (
+                f"Codigo: {item.seqiteped} | "
+                f"Pedido: {item.codped} | "
+                f"Numero do Item: {item.numite} | "
+                f"Produto: {item.codpro} | "
+                f"Quantidade: {item.qtdite} | "
+                f"Valor Unitario: {item.vlrite}"
+            )
+
+        except Exception as erro:
+            return str(erro)
+
+    @rpc(Integer, _returns=Unicode)
+    def listar_itens_pedido(ctx, codped):
+        try:
+            service = PedidoService(conn)
+            itens = service.lista_itens_pedido(codped)
+
+            if itens is None:
+                return f"Pedido com codigo {codped} nao encontrado."
+
+            if not itens:
+                return f"Pedido {codped} nao possui itens."
+
+            retorno = []
+            for item in itens:
+                retorno.append(
+                    f"Item: {item.numite} | "
+                    f"Produto: {item.codpro} | "
+                    f"Quantidade: {item.qtdite} | "
+                    f"Valor Unitario: {item.vlrite}"
+                )
+
+            return " || ".join(retorno)
+
+        except Exception as erro:
+            return str(erro)
+
+    @rpc(Integer, Integer, _returns=Unicode)
+    def remover_item_pedido(ctx, codped, numite):
+        try:
+            service = PedidoService(conn)
+            return service.remove_item_pedido(codped, numite)
+
+        except Exception as erro:
+            return str(erro)
+
+    @rpc(Integer, Unicode, _returns=Unicode)
+    def alterar_status_pedido(ctx, codped, staped):
+        try:
+            service = PedidoService(conn)
+            return service.altera_status_pedido(codped, staped)
+
+        except Exception as erro:
+            return str(erro)
+
 soap_app = Application(
     [ClienteSoapService, PedidoSoapService, ProdutoSoapService],
     tns="pudim_lanches.soap",
@@ -179,3 +260,7 @@ flask_app.wsgi_app = DispatcherMiddleware(
 @flask_app.route("/")
 def index():
     return "API SOAP PUDIM_LANCHES rodando. Acesse /soap?wsdl"
+
+
+
+

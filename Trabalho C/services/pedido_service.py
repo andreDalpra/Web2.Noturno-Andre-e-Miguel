@@ -37,6 +37,33 @@ class PedidoService:
 
         return self.cadped.remove()
 
+    def altera_status_pedido(self, p_codped: int, p_staped: str):
+        pedido = self.busca_pedido(p_codped)
+
+        if not pedido:
+            return f"Pedido nao encontrado com o codigo {p_codped}."
+
+        if not p_staped:
+            return "Status do pedido nao pode ser vazio."
+
+        p_staped = p_staped.upper()
+        if p_staped not in ("A", "P", "E"):
+            return "Status invalido. Use A para Aberto, P para Pendente ou E para Entregue."
+
+        with self.conn.cursor() as cur:
+            cur.execute(
+                """
+                    UPDATE cadped
+                       SET staped = %s
+                     WHERE codped = %s
+                """,
+                (p_staped, p_codped),
+            )
+
+        self.conn.commit()
+        self.cadped.staped = p_staped
+        return f"Status do pedido {p_codped} alterado para {p_staped}."
+
     def cria_item_pedido(self, p_iteped: Titeped):
         p_iteped.conn = self.conn
 
@@ -51,6 +78,30 @@ class PedidoService:
             return f"{op_infmsg} {msg_atualiza}"
 
         return ""
+
+    def busca_item_pedido(self, p_codped: int, p_numite: int):
+        if not self.iteped.le_uk1(p_codped, p_numite):
+            return None
+
+        return self.iteped
+
+    def lista_itens_pedido(self, p_codped: int):
+        pedido = self.busca_pedido(p_codped)
+
+        if not pedido:
+            return None
+
+        self.carrega_itens_do_pedido(p_codped)
+        return self.lisiteped.itens
+    def remove_item_pedido(self, p_codped: int, p_numite: int):
+        item = self.busca_item_pedido(p_codped, p_numite)
+
+        if not item:
+            return f"Item {p_numite} do pedido {p_codped} nao encontrado."
+
+        msg_remove = item.remove()
+        msg_atualiza = self.atualiza_valor_pedido(p_codped)
+        return f"{msg_remove} {msg_atualiza}"
 
     def valor_total_pedido(self, p_codped: int):
         return self.calcula_valor_total_pedido(p_codped)
@@ -124,3 +175,5 @@ class PedidoService:
     @lisiteped.setter
     def lisiteped(self, value):
         self._lisiteped = value
+
+

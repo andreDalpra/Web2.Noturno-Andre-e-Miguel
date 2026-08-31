@@ -33,6 +33,6 @@ CREATE TABLE ITEPED(
     qtdite INT NOT NULL,
     vlrite DECIMAL(10,2) NOT NULL,
     FOREIGN KEY (codpro) REFERENCES CADPRO(codpro),
-    FOREIGN KEY (codped) REFERENCES CADPED(codped),
-    UNIQUE INDEX uk_iteped (numite, codpro)
+    FOREIGN KEY (codped) REFERENCES CADPED(codped) ON DELETE CASCADE,
+    UNIQUE INDEX uk_iteped (numite, codped)
 );

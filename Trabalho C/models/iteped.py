@@ -96,10 +96,10 @@ class Titeped:
         with self.conn.cursor() as cur:
             cur.execute(
                 f"""
-                    INSERT INTO iteped (seqiteped, codped, numite, codpro, qtdite, vlrite)
-                    VALUES (%s, %s, %s, %s, %s, %s)
+                    INSERT INTO iteped (codped, numite, codpro, qtdite, vlrite)
+                    VALUES (%s, %s, %s, %s, %s)
                 """,
-                (self.seqiteped, self.codped, self.numite, self.codpro, self.qtdite, self.vlrite),
+                (self.codped, self.numite, self.codpro, self.qtdite, self.vlrite),
             )
             self.seqiteped = cur.lastrowid # Pega a sequence
 
@@ -188,4 +188,3 @@ class Tlisiteped:
     # Adiciona ao SQL SELECT <coluna1>,<coluna2>, etc
     def colunas_do_select(self):
         return " iteped.seqiteped, iteped.numite, iteped.codpro, iteped.qtdite, iteped.codped, iteped.vlrite "
-        
