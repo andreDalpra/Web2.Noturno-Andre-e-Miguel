@@ -26,3 +26,5 @@ Abra `http://localhost:5173`. Caso a API use outra porta, crie
 
 - `main.py`, `models.py`, `schemas.py`, `database.py` e `spotify.py`: API FastAPI.
 - `frontend/`: aplicativo React/Vite, incluindo feed, busca, login/cadastro e reviews.
+
+Veja também `docs/autenticacao-jwt.md` para a documentação da autenticação JWT/Bearer.

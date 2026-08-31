@@ -8,7 +8,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     nickname = Column(String(100), unique=True, nullable=False)
     email = Column(String(100), unique=True, nullable=False)
-    password = Column(String(100), nullable=False)
+    password = Column(String(255), nullable=False)
     
 class Rating(Base):
     __tablename__ = "ratings"
